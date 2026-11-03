@@ -1,0 +1,168 @@
+spring:
+  application:
+    name: api-gateway
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+      routes:
+        # Public — no JWT filter
+        - id: auth-service-route
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+
+        # Protected
+        - id: patient-service-route
+          uri: lb://patient-service
+          predicates:
+            - Path=/api/patients/**
+          filters:
+            - name: JwtAuth
+
+        - id: patient-wards-route
+          uri: lb://patient-service
+          predicates:
+            - Path=/api/wards, /api/wards/**
+          filters:
+            - name: JwtAuth
+
+        - id: patient-vitals-route
+          uri: lb://patient-service
+          predicates:
+            - Path=/api/vitals/**
+          filters:
+            - name: JwtAuth
+
+        - id: patient-referrals-route
+          uri: lb://patient-service
+          predicates:
+            - Path=/api/referrals/**
+          filters:
+            - name: JwtAuth
+
+        - id: appointment-service-route
+          uri: lb://appointment-service
+          predicates:
+            - Path=/api/appointments, /api/appointments/**
+          filters:
+            - name: JwtAuth
+
+        - id: appointment-emergency-route
+          uri: lb://appointment-service
+          predicates:
+            - Path=/api/appointments/emergency/**
+          filters:
+            - name: JwtAuth
+
+        - id: appointment-queue-route
+          uri: lb://appointment-service
+          predicates:
+            - Path=/api/appointments/queue/**
+          filters:
+            - name: JwtAuth
+
+        - id: appointment-ai-route
+          uri: lb://appointment-service
+          predicates:
+            - Path=/api/appointments/ai/**
+          filters:
+            - name: JwtAuth
+
+        - id: billing-service-route
+          uri: lb://billing-service
+          predicates:
+            - Path=/api/billing/**
+          filters:
+            - name: JwtAuth
+
+        - id: billing-insurance-route
+          uri: lb://billing-service
+          predicates:
+            - Path=/api/billing/insurance/**
+          filters:
+            - name: JwtAuth
+
+        - id: billing-lab-route
+          uri: lb://billing-service
+          predicates:
+            - Path=/api/billing/lab/**
+          filters:
+            - name: JwtAuth
+
+        - id: billing-pharmacy-route
+          uri: lb://billing-service
+          predicates:
+            - Path=/api/billing/pharmacy/**
+          filters:
+            - name: JwtAuth
+
+server:
+  port: ${GATEWAY_PORT:8085}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    healthcheck:
+      enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    ip-address: ${EUREKA_INSTANCE_IP:127.0.0.1}
+    instance-id: ${spring.application.name}:${server.port}:${HOSTNAME:local}
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+apexcare:
+  jwt:
+    secret: ${JWT_SECRET:c2VjdXJlLWhlYWx0aGNhcmUtc3lzdGVtLTI1Ni1iaXQtand0LXNpZ25pbmcta2V5LWFwZXhjYXJl}
+    public-paths:
+      - /api/auth/login
+      - /api/auth/register
+      - /api/auth/forgot-password
+      - /api/auth/captcha
+      - /actuator/health
+      - /actuator/info
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /swagger-ui.html
+
+app:
+  cors:
+    allowed-origins:
+      - https://app.apexcare.com
+      - https://admin.apexcare.com
+      - http://localhost:3000
+      - http://localhost:5173
+      - http://127.0.0.1:3000
+      - http://127.0.0.1:5173
+    allow-credentials: true
+    max-age: 3600
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus   # gateway removed from public list
+  endpoint:
+    gateway:
+      enabled: false                               # disable route-mutation endpoint
+    health:
+      show-details: when-authorized
+  server:
+    port: ${MANAGEMENT_PORT:9095}                  # separate port for actuator
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    com.apexcare: INFO
+    org.springframework.cloud.gateway: INFO

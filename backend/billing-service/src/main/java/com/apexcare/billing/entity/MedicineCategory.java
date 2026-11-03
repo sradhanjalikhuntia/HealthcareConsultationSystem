@@ -1,0 +1,18 @@
+package com.apexcare.billing.entity;
+
+public enum MedicineCategory {
+    ANTIBIOTIC,
+    ANALGESIC,
+    ANTIPYRETIC,
+    CARDIOVASCULAR,
+    RESPIRATORY,
+    ANTIHISTAMINE,
+    ANTIDIABETIC,
+    GASTROINTESTINAL,
+    PSYCHOTROPIC,
+    ANTICOAGULANT,
+    VITAMIN_SUPPLEMENT,
+    TOPICAL,
+    OPHTHALMIC,
+    OTHER
+}

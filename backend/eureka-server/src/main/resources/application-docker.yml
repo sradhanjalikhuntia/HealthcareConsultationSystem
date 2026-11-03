@@ -1,0 +1,5 @@
+eureka:
+  instance:
+    hostname: eureka-server
+  server:
+    enable-self-preservation: true

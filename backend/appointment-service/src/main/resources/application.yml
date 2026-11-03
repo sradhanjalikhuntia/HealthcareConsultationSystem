@@ -1,0 +1,148 @@
+spring:
+  application:
+    name: appointment-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+      client:
+        config:
+          default:
+            connectTimeout: 3000
+            readTimeout: 8000
+            loggerLevel: BASIC
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:appointment_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:Abhi$1234}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:10}
+      minimum-idle: ${DB_POOL_MIN:2}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: false
+    show-sql: false
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+server:
+  port: ${APPOINTMENT_SERVICE_PORT:8083}
+  shutdown: graceful
+  error:
+    include-message: never
+    include-stacktrace: never
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    healthcheck:
+      enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    ip-address: ${EUREKA_INSTANCE_IP:127.0.0.1}
+    instance-id: ${spring.application.name}:${server.port}:${HOSTNAME:local}
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+apexcare:
+  jwt:
+    secret: ${JWT_SECRET:c2VjdXJlLWhlYWx0aGNhcmUtc3lzdGVtLTI1Ni1iaXQtand0LXNpZ25pbmcta2V5LWFwZXhjYXJl}
+    ttl: ${JWT_TTL:PT24H}
+  billing:
+    default-consultation-fee: ${DEFAULT_CONSULTATION_FEE:1500.00}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      patient-service:
+        slidingWindowSize: 8
+        failureRateThreshold: 50
+        waitDurationInOpenState: 8s
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+      auth-service:
+        slidingWindowSize: 8
+        failureRateThreshold: 50
+        waitDurationInOpenState: 8s
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+      billing-service:
+        slidingWindowSize: 8
+        failureRateThreshold: 50
+        waitDurationInOpenState: 8s
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+  timelimiter:
+    instances:
+      patient-service:
+        timeoutDuration: 8s
+        cancelRunningFuture: true
+      auth-service:
+        timeoutDuration: 8s
+        cancelRunningFuture: true
+      billing-service:
+        timeoutDuration: 8s
+        cancelRunningFuture: true
+  retry:
+    instances:
+      patient-service:
+        maxAttempts: 2
+        waitDuration: 500ms
+      auth-service:
+        maxAttempts: 2
+        waitDuration: 500ms
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+    circuitbreakers:
+      enabled: true
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{requestId}] %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    com.apexcare: INFO
+    org.hibernate.SQL: WARN
+    org.springframework.cloud: INFO
+    feign: INFO

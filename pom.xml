@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.apexcare</groupId>
+    <artifactId>apexcare-hospital-system</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <name>ApexCare Hospital Management System</name>
+
+    <modules>
+        <module>backend/eureka-server</module>
+        <module>backend/auth-service</module>
+        <module>backend/patient-service</module>
+        <module>backend/appointment-service</module>
+        <module>backend/billing-service</module>
+        <module>backend/api-gateway</module>
+    </modules>
+</project>
+
